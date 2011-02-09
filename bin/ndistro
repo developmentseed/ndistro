@@ -12,14 +12,16 @@
 VERSION="0.4.0"
 DIR=${0%/*}
 ROOT=$(pwd)
+SRC=$ROOT/src
 BIN_URL="http://github.com/visionmedia/nodes/raw/master"
 GET=
+GET_CMD=
 
 # wget support
-which wget > /dev/null && GET="wget -q -O-"
+which wget > /dev/null && GET="wget -q -O-" && GET_CMD="wget"
 
 # curl support
-which curl > /dev/null && GET="curl -# -L"
+which curl > /dev/null && GET="curl -# -L" && GET_CMD="curl"
 
 #
 # Exit with the given <msg ...>
@@ -39,6 +41,18 @@ test -z "$GET" && abort "curl or wget required"
 
 log() {
   echo "... $@"
+}
+
+#
+# Retrieves the URL and returns the HTTP status code
+#
+
+http_code() {
+  if test "$GET_CMD" = "curl"; then
+    return $(curl -L -I -w %{http_code} --silent -o /dev/null "$1")
+  else
+    return $(wget -q --spider -S "$1" 2>&1 | sed -n -e 's/^  HTTP\/1\.[01] \([0-9]*\) .*$/\1/p' | sed -n '$p')
+  fi
 }
 
 #
@@ -156,9 +170,35 @@ lib() {
 install_node() {
   local version=$1
   local machine=$2
-  local url="$BIN_URL/$version-$machine"
-  log "installing node-$version-$machine"
-  $GET $url > bin/node && chmod 0755 bin/node
+
+  # download the source code and compile it.
+  if test $machine = "source"; then
+    local url="http://nodejs.org/dist/node-v$version.tar.gz"
+    http_code $url
+    if [ $? -eq 200 ]; then
+      mkdir -p $SRC/node-$version && \
+      cd $SRC/node-$version && \
+      log "building node-$version"
+      $GET $url | tar -xz --strip 1 && \
+      ./configure --prefix=$ROOT 1> /dev/null 2> /dev/null && \
+      make 1> /dev/null && \
+      make install 1> /dev/null && \
+      cp bin/node $ROOT/bin/node && \
+      cd $ROOT
+    else
+      abort "download node-$version source failed"
+    fi
+  # download a node binary
+  else
+    local url="$BIN_URL/$version-$machine"
+    http_code $url
+    if [ $? -eq 200 ]; then
+      log "installing node-$version-$machine"
+      $GET $url > bin/node && chmod 0755 bin/node
+    else
+      abort "download node-$version-$machine failed"
+    fi
+  fi
 }
 
 #

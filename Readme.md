@@ -66,11 +66,14 @@ or if you wish to have a clean start and re-install everything:
 
     $ rm -fr bin modules && ndistro
 
-## node <version>
+## node &lt;version&gt; [platform]
 
-  Specifies the _version_ of node to install.
+  Specifies the _version_ of node to install for a given _platform_.
+  If _platform_ is `source` node will be compiled locally.
 
     node 0.1.102
+    node 0.1.102 i686
+    node 0.1.102 source
 
 ## module &lt;user&gt; &lt;project&gt; [version] [alias]
 	
