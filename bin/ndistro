@@ -302,6 +302,7 @@ Commands:
 
   edit              Opens CWD/.ndistro in $EDITOR
   update            Update ndistro to the latest version
+  clean             Clean distro to fresh state
   <user> <distro>   Installs the given <distro> from <user>
 
 Options:
@@ -334,6 +335,20 @@ else
       ;;
     edit)
       $EDITOR $ROOT/.ndistro
+      ;;
+    clean)
+      if test -f $ROOT/.ndistro; then
+        log "cleaning build directories"
+        test -d bin && rm -fr bin
+        test -d include && rm -fr include
+        test -d lib && rm -fr lib
+        test -d modules && rm -fr modules
+        test -d share && rm -fr share
+        test -d src && rm -fr src
+        exit 0
+      else
+        abort ".ndistro not found in this directory"
+      fi
       ;;
     *)
       test $# -eq 1 && list_user_distros $1
