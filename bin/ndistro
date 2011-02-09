@@ -127,9 +127,13 @@ bin() {
 build() {
   local mod=$1
   if test -f $ROOT/modules/$mod/wscript; then
-    log "building $mod"
-    cd $ROOT/modules/$mod \
-      && node-waf configure build
+    if test -f $ROOT/bin/node-waf; then
+      log "building $mod"
+      cd $ROOT/modules/$mod \
+        && $ROOT/bin/node-waf --prefix=$ROOT configure build
+    else
+      log "skipped building $mod, local node-waf not found"
+    fi
   fi
 }
 
