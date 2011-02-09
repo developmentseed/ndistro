@@ -183,7 +183,6 @@ install_node() {
       ./configure --prefix=$ROOT 1> /dev/null 2> /dev/null && \
       make 1> /dev/null && \
       make install 1> /dev/null && \
-      cp bin/node $ROOT/bin/node && \
       cd $ROOT
     else
       abort "download node-$version source failed"
