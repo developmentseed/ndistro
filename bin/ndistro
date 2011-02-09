@@ -151,20 +151,26 @@ lib() {
   fi
   
   mkdir -p $ROOT/lib/node
+  cd $ROOT/lib/node
+
   if test -f $ROOT/modules/$mod/index.js; then
-    cd $ROOT/lib/node
     ln -sf ../../modules/$mod ./$moddir
-    cd ../..
+  elif test -f $ROOT/modules/$mod/lib/index.js; then
+    ln -sf ../../modules/$mod/lib ./$moddir
   elif test -d $ROOT/modules/$mod/lib; then
-    cd $ROOT/lib/node
+    # Attempt to support aliasing for module layouts like
+    # modules/foo/lib/foo -> lib/node/bar. If modules/foo/lib
+    # contains multiple directories and the module has been
+    # aliased this will fail.
     if test "$moddir" != "$mod"; then
       moddir="./$moddir"
     else
       moddir="./"
     fi
     ln -sf ../../modules/$mod/lib/* $moddir
-    cd ../..
   fi
+
+  cd ../..
 }
 
 #
